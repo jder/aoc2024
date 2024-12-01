@@ -4,8 +4,6 @@ use std::{
     hash::Hash,
 };
 
-pub mod grid;
-
 pub fn min_distances<V>(start: V, edges: impl Fn(&V) -> Vec<(V, u64)>) -> HashMap<V, u64>
 where
     V: Eq + Ord + Hash + Clone,
