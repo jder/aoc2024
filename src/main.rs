@@ -7,6 +7,7 @@ pub mod prelude {
     pub use super::grid::*;
     pub use hashbag::HashBag;
     pub use itertools::Itertools;
+    pub use regex;
 }
 
 pub mod graph;
@@ -86,11 +87,13 @@ struct Args {
 
 mod day1;
 mod day2;
+mod day3;
 
 pub fn main() {
     let mut runner = Runner::new();
     runner.register_day("day1", day1::part1, day1::part2);
     runner.register_day("day2", day2::part1, day2::part2);
+    runner.register_day("day3", day3::part1, day3::part2);
 
     let args = Args::parse();
     match args.day {
