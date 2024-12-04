@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-pub type Index = i32;
+pub type Index = isize;
 
 #[derive(Debug, Clone)]
 pub struct Grid<T> {
@@ -10,10 +10,19 @@ pub struct Grid<T> {
 }
 
 impl<T> Grid<T> {
-    pub fn cell(&self, location: Location) -> Cell<T> {
-        Cell {
-            grid: self,
-            location,
+    /// Returns a cell for this location, or None if the location is out of bounds.
+    pub fn cell(&self, location: Location) -> Option<Cell<T>> {
+        if location.x < 0
+            || location.y < 0
+            || location.x >= self.width as Index
+            || location.y >= self.height as Index
+        {
+            None
+        } else {
+            Some(Cell {
+                grid: self,
+                location,
+            })
         }
     }
 
@@ -95,7 +104,7 @@ pub struct Location {
 }
 
 impl Location {
-    pub fn offset(&self, dx: i32, dy: i32) -> Self {
+    pub fn offset(&self, dx: Index, dy: Index) -> Self {
         Self {
             x: self.x + dx,
             y: self.y + dy,
@@ -120,26 +129,20 @@ pub struct Cell<'a, T> {
 }
 
 impl<'a, T> Cell<'a, T> {
-    pub fn contents(&self) -> Option<&T> {
-        if !self.in_bounds() {
-            None
-        } else {
-            self.grid
-                .contents
-                .get(self.location.y as usize)
-                .and_then(|row| row.get(self.location.x as usize))
-        }
+    pub fn contents(&self) -> &T {
+        self.grid
+            .contents
+            .get(self.location.y as usize)
+            .and_then(|row| row.get(self.location.x as usize))
+            .expect("Cell should always be in bounds")
     }
 
     pub fn location(&self) -> Location {
         self.location
     }
 
-    pub fn offset(&self, dx: i32, dy: i32) -> Cell<'a, T> {
-        Cell {
-            grid: self.grid,
-            location: self.location.offset(dx, dy),
-        }
+    pub fn offset(&self, dx: Index, dy: Index) -> Option<Cell<'a, T>> {
+        self.grid.cell(self.location.offset(dx, dy))
     }
 
     pub fn neighbors(&self) -> impl Iterator<Item = Cell<'a, T>> + '_ {
@@ -151,11 +154,11 @@ impl<'a, T> Cell<'a, T> {
 
     /// Walks in the given direction until it hits the edge of the grid.
     /// This cell is not included in the iterator.
-    pub fn walk(&self, dx: i32, dy: i32) -> impl Iterator<Item = Cell<'a, T>> + '_ {
+    pub fn walk(&self, dx: Index, dy: Index) -> impl Iterator<Item = Cell<'a, T>> {
         let mut cell = *self;
         std::iter::from_fn(move || {
-            cell = cell.offset(dx, dy);
-            if cell.in_bounds() {
+            if let Some(next) = cell.offset(dx, dy) {
+                cell = next;
                 Some(cell)
             } else {
                 None
@@ -165,15 +168,8 @@ impl<'a, T> Cell<'a, T> {
 
     /// Walks in the given direction until it hits the edge of the grid.
     /// This cell is included in the iterator.
-    pub fn walk_inclusive(&self, dx: i32, dy: i32) -> impl Iterator<Item = Cell<'a, T>> + '_ {
+    pub fn walk_inclusive(&self, dx: Index, dy: Index) -> impl Iterator<Item = Cell<'a, T>> {
         std::iter::once(*self).chain(self.walk(dx, dy))
-    }
-
-    pub fn in_bounds(&self) -> bool {
-        self.location.x >= 0
-            && self.location.y >= 0
-            && self.location.x < self.grid.width as Index
-            && self.location.y < self.grid.height as Index
     }
 }
 
