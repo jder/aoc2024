@@ -43,7 +43,7 @@ impl Runner {
         ));
     }
 
-    fn run(&self, day: &str, part: usize) {
+    fn run(&self, day: &str, part: usize, sample: bool) {
         let (part1, part2) = &self
             .days
             .iter()
@@ -54,7 +54,11 @@ impl Runner {
         let contents = std::fs::read_to_string(
             Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("input")
-                .join(day)
+                .join(if sample {
+                    format!("{}-sample", day)
+                } else {
+                    day.to_string()
+                })
                 .with_extension("txt"),
         )
         .expect("Failed to read input");
@@ -70,8 +74,8 @@ impl Runner {
 
     fn run_all(&self) {
         for (day, _) in &self.days {
-            self.run(day, 1);
-            self.run(day, 2);
+            self.run(day, 1, false);
+            self.run(day, 2, false);
         }
     }
 }
@@ -83,25 +87,37 @@ struct Args {
 
     /// Part to run (1 or 2) (default both)
     part: Option<usize>,
+
+    /// Use sample data
+    #[clap(long, short)]
+    sample: bool,
 }
 
 mod day1;
 mod day2;
 mod day3;
+mod day4;
 
 pub fn main() {
     let mut runner = Runner::new();
     runner.register_day("day1", day1::part1, day1::part2);
     runner.register_day("day2", day2::part1, day2::part2);
     runner.register_day("day3", day3::part1, day3::part2);
+    runner.register_day("day4", day4::part1, day4::part2);
 
     let args = Args::parse();
+
+    if args.sample && args.day.is_none() {
+        eprintln!("--sample requires --day");
+        std::process::exit(1);
+    }
+
     match args.day {
         Some(day) => match args.part {
-            Some(part) => runner.run(&day, part),
+            Some(part) => runner.run(&day, part, args.sample),
             None => {
-                runner.run(&day, 1);
-                runner.run(&day, 2);
+                runner.run(&day, 1, args.sample);
+                runner.run(&day, 2, args.sample);
             }
         },
         None => runner.run_all(),

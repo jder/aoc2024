@@ -103,11 +103,14 @@ impl Location {
     }
 
     pub fn neighbors(&self) -> impl Iterator<Item = Location> + '_ {
-        (-1..=1)
-            .flat_map(|dy| (-1..=1).map(move |dx| (dx, dy)))
-            .filter(|(dx, dy)| *dx != 0 || *dy != 0)
-            .map(|(dx, dy)| self.offset(dx, dy))
+        all_headings().map(|(dx, dy)| self.offset(dx, dy))
     }
+}
+
+pub fn all_headings() -> impl Iterator<Item = (Index, Index)> {
+    (-1..=1)
+        .flat_map(|dy| (-1..=1).map(move |dx| (dx, dy)))
+        .filter(|(dx, dy)| *dx != 0 || *dy != 0)
 }
 
 #[derive(Debug)]
