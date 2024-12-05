@@ -32,6 +32,12 @@ fn compare(a: &usize, b: &usize, followers: &HashMap<usize, Vec<usize>>) -> Orde
     {
         Ordering::Less
     } else {
+        // Some sanity checks to make sure we have a total order
+        assert!(a != b);
+        assert!(followers
+            .get(b)
+            .map(|followers| followers.contains(a))
+            .unwrap());
         Ordering::Greater
     }
 }
