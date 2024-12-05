@@ -8,7 +8,7 @@ fn parse_input(input: &str) -> (HashMap<usize, Vec<usize>>, Vec<Vec<usize>>) {
     for line in orderings.lines() {
         let (before, after) = line
             .split("|")
-            .map(|num| num.parse::<usize>().unwrap())
+            .map(|num| num.parse().unwrap())
             .collect_tuple()
             .unwrap();
 
@@ -17,7 +17,7 @@ fn parse_input(input: &str) -> (HashMap<usize, Vec<usize>>, Vec<Vec<usize>>) {
 
     let updates = updates.lines().map(|line| {
         line.split(",")
-            .map(|num| num.parse::<usize>().unwrap())
+            .map(|num| num.parse().unwrap())
             .collect_vec()
     });
 
