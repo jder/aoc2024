@@ -1,8 +1,8 @@
-use std::collections::HashMap;
+use std::{cmp::Ordering, collections::HashMap};
 
 use crate::prelude::*;
 
-pub fn part1(input: &str) -> usize {
+fn parse_input(input: &str) -> (HashMap<usize, Vec<usize>>, Vec<Vec<usize>>) {
     let (orderings, updates) = input.split_once("\n\n").unwrap();
     let mut followers: HashMap<usize, Vec<usize>> = HashMap::new();
     for line in orderings.lines() {
@@ -21,19 +21,41 @@ pub fn part1(input: &str) -> usize {
             .collect_vec()
     });
 
+    (followers, updates.collect())
+}
+
+fn compare(a: &usize, b: &usize, followers: &HashMap<usize, Vec<usize>>) -> Ordering {
+    if followers
+        .get(a)
+        .map(|followers| followers.contains(b))
+        .unwrap()
+    {
+        Ordering::Less
+    } else {
+        Ordering::Greater
+    }
+}
+
+pub fn part1(input: &str) -> usize {
+    let (followers, updates) = parse_input(input);
+
     updates
-        .filter(|update| {
-            update.is_sorted_by(|a, b| {
-                !followers
-                    .get(b)
-                    .map(|followers| followers.contains(a))
-                    .unwrap_or_default()
-            })
-        })
+        .into_iter()
+        .filter(|update| update.is_sorted_by(|a, b| compare(a, b, &followers) == Ordering::Less))
         .map(|update| update[update.len() / 2])
         .sum()
 }
 
 pub fn part2(input: &str) -> usize {
-    todo!()
+    let (followers, updates) = parse_input(input);
+
+    updates
+        .into_iter()
+        .filter(|update| !update.is_sorted_by(|a, b| compare(a, b, &followers) == Ordering::Less))
+        .map(|update| {
+            let mut sorted = update.clone();
+            sorted.sort_by(|a, b| compare(a, b, &followers));
+            sorted[sorted.len() / 2]
+        })
+        .sum()
 }
