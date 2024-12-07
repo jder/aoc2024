@@ -76,11 +76,11 @@ impl Runner {
         };
         let elapsed = start.elapsed();
         println!(
-            "{} part {}: {} ({}ms)",
+            "{} part {}: {}\t({}µs)",
             day,
             part,
             result,
-            elapsed.as_millis()
+            elapsed.as_micros()
         );
     }
 
