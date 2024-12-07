@@ -120,10 +120,11 @@ pub fn part2(input: &str) -> usize {
         .unwrap()
         .location();
 
-    let possible_obstacles = map
-        .cells()
-        .filter_map(|cell| (*cell.contents() == '.').then_some(cell.location()))
-        .collect_vec();
+    let visited = walk(&map, start).unwrap();
+    let possible_obstacles = visited
+        .iter()
+        .unique_by(|v| v.0)
+        .map(|(location, _)| location);
 
     possible_obstacles
         .into_iter()
