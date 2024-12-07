@@ -245,4 +245,8 @@ impl Region {
             .collect::<HashSet<_>>() // to make unique
             .into_iter()
     }
+
+    pub fn len(&self) -> usize {
+        self.locations.len()
+    }
 }

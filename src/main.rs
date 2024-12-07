@@ -98,6 +98,7 @@ mod day2;
 mod day3;
 mod day4;
 mod day5;
+mod day6;
 
 pub fn main() {
     let mut runner = Runner::new();
@@ -106,6 +107,7 @@ pub fn main() {
     runner.register_day("day3", day3::part1, day3::part2);
     runner.register_day("day4", day4::part1, day4::part2);
     runner.register_day("day5", day5::part1, day5::part2);
+    runner.register_day("day6", day6::part1, day6::part2);
 
     let args = Args::parse();
 
