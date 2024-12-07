@@ -128,8 +128,8 @@ pub fn part2(input: &str) -> usize {
         .collect_vec();
 
     possible_obstacles
-        .par_iter()
-        .filter(|&&location| {
+        .into_par_iter()
+        .filter(|&location| {
             let mut map = map.clone();
             map.set(location, '#');
             walk(&map, start).is_none()
