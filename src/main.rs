@@ -9,6 +9,7 @@ pub mod prelude {
     pub use bitvec;
     pub use hashbag::HashBag;
     pub use itertools::Itertools;
+    pub use num::{Float, Integer};
     pub use rayon::prelude::*;
     pub use regex;
 }
