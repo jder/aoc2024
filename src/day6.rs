@@ -113,7 +113,7 @@ pub fn part1(input: &str) -> usize {
 }
 
 pub fn part2(input: &str) -> usize {
-    let mut map = Grid::new_with_lines(input.lines());
+    let map = Grid::new_with_lines(input.lines());
     let start = map
         .cells()
         .find(|cell| *cell.contents() == '^')
@@ -124,11 +124,13 @@ pub fn part2(input: &str) -> usize {
     let possible_obstacles = visited
         .iter()
         .unique_by(|v| v.0)
-        .map(|(location, _)| location);
+        .map(|(location, _)| location)
+        .collect_vec();
 
     possible_obstacles
-        .into_iter()
-        .filter(|&location| {
+        .par_iter()
+        .filter(|&&location| {
+            let mut map = map.clone();
             map.set(location, '#');
             let is_loop = walk(&map, start).is_none();
             map.set(location, '.');

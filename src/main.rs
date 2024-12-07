@@ -6,8 +6,10 @@ use clap::Parser;
 pub mod prelude {
     pub use super::graph::{flood_fill_from, min_distances};
     pub use super::grid::*;
+    pub use bitvec;
     pub use hashbag::HashBag;
     pub use itertools::Itertools;
+    pub use rayon::prelude::*;
     pub use regex;
 }
 
