@@ -1,3 +1,4 @@
+#![feature(hash_set_entry)]
 use std::{fmt::Display, path::Path};
 
 use clap::Parser;
@@ -86,6 +87,7 @@ struct Args {
     day: Option<String>,
 
     /// Part to run (1 or 2) (default both)
+    #[clap(long, short)]
     part: Option<usize>,
 
     /// Use sample data

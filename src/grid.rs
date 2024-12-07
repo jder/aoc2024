@@ -26,6 +26,10 @@ impl<T> Grid<T> {
         }
     }
 
+    pub fn set(&mut self, location: Location, value: T) {
+        self.contents[location.y as usize][location.x as usize] = value;
+    }
+
     pub fn width(&self) -> usize {
         self.width
     }
