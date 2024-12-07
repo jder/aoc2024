@@ -132,9 +132,7 @@ pub fn part2(input: &str) -> usize {
         .filter(|&&location| {
             let mut map = map.clone();
             map.set(location, '#');
-            let is_loop = walk(&map, start).is_none();
-            map.set(location, '.');
-            is_loop
+            walk(&map, start).is_none()
         })
         .count()
 }
