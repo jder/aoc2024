@@ -65,12 +65,20 @@ impl Runner {
         .expect("Failed to read input");
         let input = contents.trim();
 
+        let start = std::time::Instant::now();
         let result = match part {
             1 => part1(input),
             2 => part2(input),
             _ => panic!("Invalid part {}", part),
         };
-        println!("{} part {}: {}", day, part, result);
+        let elapsed = start.elapsed();
+        println!(
+            "{} part {}: {} ({}ms)",
+            day,
+            part,
+            result,
+            elapsed.as_millis()
+        );
     }
 
     fn run_all(&self) {
