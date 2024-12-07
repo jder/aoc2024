@@ -1,5 +1,3 @@
-use std::collections::{hash_set, HashSet};
-
 use bitvec::vec::BitVec;
 
 use crate::prelude::*;
@@ -35,7 +33,6 @@ impl Direction {
 
 struct Visited {
     width: usize,
-    height: usize,
     bitvec: BitVec,
 }
 
@@ -43,7 +40,6 @@ impl Visited {
     fn new(width: usize, height: usize) -> Self {
         Self {
             width: width,
-            height: height,
             bitvec: BitVec::repeat(false, width * height * 4),
         }
     }
@@ -84,7 +80,7 @@ impl Visited {
     }
 }
 
-pub fn walk(map: &Grid<char>) -> Option<usize> {
+fn walk(map: &Grid<char>) -> Option<Visited> {
     let mut visited = Visited::new(map.width(), map.height());
 
     let mut now = map.cells().find(|cell| *cell.contents() == '^').unwrap();
@@ -101,14 +97,14 @@ pub fn walk(map: &Grid<char>) -> Option<usize> {
                 now = in_front;
             }
         } else {
-            break Some(visited.iter().unique_by(|v| v.0).count());
+            break Some(visited);
         }
     }
 }
 
 pub fn part1(input: &str) -> usize {
     let map = Grid::new_with_lines(input.lines());
-    walk(&map).unwrap()
+    walk(&map).unwrap().iter().unique_by(|v| v.0).count()
 }
 
 pub fn part2(input: &str) -> usize {
