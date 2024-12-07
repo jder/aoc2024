@@ -80,10 +80,10 @@ impl Visited {
     }
 }
 
-fn walk(map: &Grid<char>) -> Option<Visited> {
+fn walk(map: &Grid<char>, start: Location) -> Option<Visited> {
     let mut visited = Visited::new(map.width(), map.height());
 
-    let mut now = map.cells().find(|cell| *cell.contents() == '^').unwrap();
+    let mut now = map.cell(start).unwrap();
     let mut direction = Direction::Up;
     loop {
         if visited.insert(now.location(), direction) {
@@ -104,11 +104,21 @@ fn walk(map: &Grid<char>) -> Option<Visited> {
 
 pub fn part1(input: &str) -> usize {
     let map = Grid::new_with_lines(input.lines());
-    walk(&map).unwrap().iter().unique_by(|v| v.0).count()
+    let start = map
+        .cells()
+        .find(|cell| *cell.contents() == '^')
+        .unwrap()
+        .location();
+    walk(&map, start).unwrap().iter().unique_by(|v| v.0).count()
 }
 
 pub fn part2(input: &str) -> usize {
     let mut map = Grid::new_with_lines(input.lines());
+    let start = map
+        .cells()
+        .find(|cell| *cell.contents() == '^')
+        .unwrap()
+        .location();
 
     let possible_obstacles = map
         .cells()
@@ -119,7 +129,7 @@ pub fn part2(input: &str) -> usize {
         .into_iter()
         .filter(|&location| {
             map.set(location, '#');
-            let is_loop = walk(&map).is_none();
+            let is_loop = walk(&map, start).is_none();
             map.set(location, '.');
             is_loop
         })
