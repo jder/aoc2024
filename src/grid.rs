@@ -99,7 +99,7 @@ impl Grid<char> {
     }
 }
 
-pub type Location = euclid::default::Vector2D<Index>;
+pub type Location = euclid::default::Point2D<Index>;
 
 pub fn neighbors(l: Location) -> impl Iterator<Item = Location> {
     all_headings().map(move |(dx, dy)| l + vec2(dx, dy))
