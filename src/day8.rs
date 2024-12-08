@@ -25,7 +25,7 @@ pub fn part1(input: &str) -> usize {
 }
 
 pub fn part2(input: &str) -> usize {
-    let map = Grid::new_with_lines(input.lines());
+    let map = &Grid::new_with_lines(input.lines());
     let stations = map.cells().filter(|c| *c.contents() != '.');
 
     stations
@@ -35,7 +35,6 @@ pub fn part2(input: &str) -> usize {
             if a != b && a.contents() == b.contents() {
                 let a_to_b = b.location() - a.location();
                 let mut now = a.location();
-                let map = &map;
                 Either::Left(iter::from_fn(move || {
                     now += a_to_b;
                     map.cell(now)
