@@ -7,6 +7,7 @@ pub mod prelude {
     pub use super::graph::{flood_fill_from, min_distances};
     pub use super::grid::*;
     pub use bitvec;
+    pub use euclid::{vec2, Vector2D};
     pub use hashbag::HashBag;
     pub use itertools::Itertools;
     pub use num::{Float, Integer};
@@ -113,7 +114,7 @@ mod day4;
 mod day5;
 mod day6;
 mod day7;
-
+mod day8;
 pub fn main() {
     let mut runner = Runner::new();
     runner.register_day("day1", day1::part1, day1::part2);
@@ -123,6 +124,7 @@ pub fn main() {
     runner.register_day("day5", day5::part1, day5::part2);
     runner.register_day("day6", day6::part1, day6::part2);
     runner.register_day("day7", day7::part1, day7::part2);
+    runner.register_day("day8", day8::part1, day8::part2);
 
     let args = Args::parse();
 

@@ -61,10 +61,7 @@ impl Visited {
                     let x = (index % (self.width * 4)) / 4;
                     let heading = index % 4;
                     Some((
-                        Location {
-                            x: x as Index,
-                            y: y as Index,
-                        },
+                        Location::new(x as Index, y as Index),
                         match heading {
                             0 => Direction::Up,
                             1 => Direction::Right,

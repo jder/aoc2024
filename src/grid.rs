@@ -1,3 +1,4 @@
+use crate::prelude::*;
 use std::collections::HashSet;
 
 pub type Index = isize;
@@ -38,11 +39,11 @@ impl<T> Grid<T> {
         self.height
     }
 
-    pub fn cells(&self) -> impl Iterator<Item = Cell<T>> {
+    pub fn cells(&self) -> impl Iterator<Item = Cell<T>> + Clone {
         let width = self.width as Index;
         let height = self.height as Index;
         (0..height)
-            .flat_map(move |y| (0..width).map(move |x| Location { x, y }))
+            .flat_map(move |y| (0..width).map(move |x| Location::new(x, y)))
             .map(move |location| Cell {
                 grid: self,
                 location,
@@ -56,10 +57,7 @@ impl<T> Grid<T> {
             for x in 0..self.width {
                 new_row.push(f(Cell {
                     grid: self,
-                    location: Location {
-                        x: x as Index,
-                        y: y as Index,
-                    },
+                    location: Location::new(x as Index, y as Index),
                 }));
             }
             contents.push(new_row);
@@ -101,23 +99,10 @@ impl Grid<char> {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct Location {
-    pub x: Index,
-    pub y: Index,
-}
+pub type Location = euclid::default::Vector2D<Index>;
 
-impl Location {
-    pub fn offset(&self, dx: Index, dy: Index) -> Self {
-        Self {
-            x: self.x + dx,
-            y: self.y + dy,
-        }
-    }
-
-    pub fn neighbors(&self) -> impl Iterator<Item = Location> + '_ {
-        all_headings().map(|(dx, dy)| self.offset(dx, dy))
-    }
+pub fn neighbors(l: Location) -> impl Iterator<Item = Location> {
+    all_headings().map(move |(dx, dy)| l + vec2(dx, dy))
 }
 
 pub fn all_headings() -> impl Iterator<Item = (Index, Index)> {
@@ -146,11 +131,11 @@ impl<'a, T> Cell<'a, T> {
     }
 
     pub fn offset(&self, dx: Index, dy: Index) -> Option<Cell<'a, T>> {
-        self.grid.cell(self.location.offset(dx, dy))
+        self.grid.cell(self.location + vec2(dx, dy))
     }
 
     pub fn neighbors(&self) -> impl Iterator<Item = Cell<'a, T>> + '_ {
-        self.location.neighbors().map(move |location| Cell {
+        neighbors(self.location).map(move |location| Cell {
             grid: self.grid,
             location,
         })
@@ -199,7 +184,9 @@ impl<'a, T> Eq for Cell<'a, T> {}
 impl<'a, T> Ord for Cell<'a, T> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.location
-            .cmp(&other.location)
+            .x
+            .cmp(&other.location.x)
+            .then(self.location.y.cmp(&other.location.y))
             .then((self.grid as *const _ as usize).cmp(&(other.grid as *const _ as usize)))
     }
 }
@@ -244,7 +231,7 @@ impl Region {
     pub fn neighbors(&self) -> impl Iterator<Item = Location> + '_ {
         self.locations
             .iter()
-            .flat_map(|location| location.neighbors())
+            .flat_map(|location| neighbors(*location))
             .filter(move |location| !self.locations.contains(location))
             .collect::<HashSet<_>>() // to make unique
             .into_iter()
