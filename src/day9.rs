@@ -34,13 +34,6 @@ pub fn part1(input: &str) -> usize {
         }
     }
 
-    println!(
-        "{:?}",
-        disk.iter()
-            .map(|d| if let Some(d) = d { *d as i32 } else { -1i32 })
-            .collect::<Vec<_>>()
-    );
-
     disk.iter()
         .enumerate()
         .map(
@@ -55,6 +48,72 @@ pub fn part1(input: &str) -> usize {
         .sum()
 }
 
+#[derive(Debug)]
+struct File {
+    number: usize,
+    index: usize,
+    len: usize,
+}
+
 pub fn part2(input: &str) -> usize {
-    todo!()
+    let mut files = Vec::new();
+    let mut frees = Vec::new();
+
+    let mut location = 0;
+    for (index, mut chunk) in input
+        .chars()
+        .map(|c| c.to_digit(10).unwrap() as usize)
+        .chunks(2)
+        .into_iter()
+        .enumerate()
+    {
+        let file_len = chunk.next().unwrap();
+        files.push(File {
+            number: index,
+            index: location,
+            len: file_len,
+        });
+        location += file_len;
+
+        if let Some(free_len) = chunk.next() {
+            frees.push((location, free_len));
+            location += free_len;
+        }
+    }
+
+    for index in (0..files.len()).rev() {
+        let len = files[index].len;
+        let original_index = files[index].index;
+        for (free_index, free_len) in &mut frees {
+            if *free_index >= original_index {
+                break;
+            }
+            if *free_len >= len {
+                files[index].index = *free_index;
+                *free_len -= len;
+                *free_index += len;
+                frees.push((original_index, len));
+                break;
+            }
+        }
+        merge_frees(&mut frees);
+    }
+
+    files
+        .iter()
+        .map(|f| (f.index..(f.index + f.len)).sum::<usize>() * f.number)
+        .sum()
+}
+
+fn merge_frees(frees: &mut Vec<(usize, usize)>) {
+    frees.sort();
+    let mut i = 0;
+    while i < frees.len() - 1 {
+        if frees[i].0 + frees[i].1 == frees[i + 1].0 {
+            frees[i].1 += frees[i + 1].1;
+            frees.remove(i + 1);
+        } else {
+            i += 1;
+        }
+    }
 }
