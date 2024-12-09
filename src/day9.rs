@@ -96,24 +96,10 @@ pub fn part2(input: &str) -> usize {
                 break;
             }
         }
-        merge_frees(&mut frees);
     }
 
     files
         .iter()
         .map(|f| (f.index..(f.index + f.len)).sum::<usize>() * f.number)
         .sum()
-}
-
-fn merge_frees(frees: &mut Vec<(usize, usize)>) {
-    frees.sort();
-    let mut i = 0;
-    while i < frees.len() - 1 {
-        if frees[i].0 + frees[i].1 == frees[i + 1].0 {
-            frees[i].1 += frees[i + 1].1;
-            frees.remove(i + 1);
-        } else {
-            i += 1;
-        }
-    }
 }
