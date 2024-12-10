@@ -101,14 +101,22 @@ impl Grid<char> {
 
 pub type Location = euclid::default::Point2D<Index>;
 
-pub fn neighbors(l: Location) -> impl Iterator<Item = Location> {
-    all_headings().map(move |(dx, dy)| l + vec2(dx, dy))
-}
-
 pub fn all_headings() -> impl Iterator<Item = (Index, Index)> {
     (-1..=1)
         .flat_map(|dy| (-1..=1).map(move |dx| (dx, dy)))
         .filter(|(dx, dy)| *dx != 0 || *dy != 0)
+}
+
+pub fn neighbors(l: Location) -> impl Iterator<Item = Location> {
+    all_headings().map(move |(dx, dy)| l + vec2(dx, dy))
+}
+
+pub fn cardinal_headings() -> impl Iterator<Item = (Index, Index)> {
+    [(-1, 0), (1, 0), (0, -1), (0, 1)].iter().copied()
+}
+
+pub fn cardinal_neighbors(l: Location) -> impl Iterator<Item = Location> {
+    cardinal_headings().map(move |(dx, dy)| l + vec2(dx, dy))
 }
 
 #[derive(Debug)]
@@ -134,11 +142,14 @@ impl<'a, T> Cell<'a, T> {
         self.grid.cell(self.location + vec2(dx, dy))
     }
 
-    pub fn neighbors(&self) -> impl Iterator<Item = Cell<'a, T>> + '_ {
-        neighbors(self.location).map(move |location| Cell {
-            grid: self.grid,
-            location,
-        })
+    pub fn neighbors(&self) -> impl Iterator<Item = Cell<'a, T>> {
+        let grid = self.grid;
+        neighbors(self.location).flat_map(move |location| grid.cell(location))
+    }
+
+    pub fn cardinal_neighbors(&self) -> impl Iterator<Item = Cell<'a, T>> {
+        let grid = self.grid;
+        cardinal_neighbors(self.location).flat_map(move |location| grid.cell(location))
     }
 
     /// Walks in the given direction until it hits the edge of the grid.

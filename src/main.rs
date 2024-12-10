@@ -4,7 +4,7 @@ use std::{fmt::Display, path::Path};
 use clap::Parser;
 
 pub mod prelude {
-    pub use super::graph::{flood_fill_from, min_distances};
+    pub use super::graph;
     pub use super::grid::*;
     pub use bitvec;
     pub use euclid::{vec2, Vector2D};
@@ -108,6 +108,7 @@ struct Args {
 }
 
 mod day1;
+mod day10;
 mod day2;
 mod day3;
 mod day4;
@@ -128,6 +129,7 @@ pub fn main() {
     runner.register_day("day7", day7::part1, day7::part2);
     runner.register_day("day8", day8::part1, day8::part2);
     runner.register_day("day9", day9::part1, day9::part2);
+    runner.register_day("day10", day10::part1, day10::part2);
 
     let args = Args::parse();
 

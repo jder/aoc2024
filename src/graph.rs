@@ -1,8 +1,36 @@
 use std::{
     cmp::Reverse,
-    collections::{BinaryHeap, HashMap},
+    collections::{BinaryHeap, HashMap, HashSet},
     hash::Hash,
 };
+
+pub fn find<V, EdgeIterator>(
+    start: V,
+    mut edges: impl FnMut(V) -> EdgeIterator,
+    mut predicate: impl FnMut(&V) -> bool,
+) -> impl Iterator<Item = V>
+where
+    EdgeIterator: Iterator<Item = V>,
+    V: Eq + Hash + Clone,
+{
+    let mut visited = HashSet::new();
+    let mut queue = vec![start];
+
+    std::iter::from_fn(move || {
+        while let Some(node) = queue.pop() {
+            if visited.contains(&node) {
+                continue;
+            }
+            visited.insert(node.clone());
+            queue.extend(edges(node.clone()));
+
+            if predicate(&node) {
+                return Some(node);
+            }
+        }
+        None
+    })
+}
 
 pub fn min_distances<V>(start: V, edges: impl Fn(&V) -> Vec<(V, u64)>) -> HashMap<V, u64>
 where
