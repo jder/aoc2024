@@ -13,6 +13,7 @@ pub mod prelude {
     pub use num::{Float, Integer};
     pub use rayon::prelude::*;
     pub use regex;
+    pub use std::collections::HashMap;
 }
 
 pub mod graph;
