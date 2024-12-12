@@ -294,7 +294,7 @@ impl Face {
         }
     }
 
-    pub fn touching_locations(&self) -> impl Iterator<Item = Location> {
+    pub fn touching_locations(&self) -> [Location; 2] {
         let start = self.start;
         let end = if self.vertical {
             start + vec2(-1, 0)
@@ -302,10 +302,10 @@ impl Face {
             start + vec2(0, -1)
         };
 
-        [start, end].into_iter()
+        [start, end]
     }
 
-    pub fn same_direction_neighbors(&self) -> impl Iterator<Item = Face> {
+    pub fn same_direction_neighbors(&self) -> [Face; 2] {
         let fence_direction = if self.vertical {
             vec2(0, 1)
         } else {
@@ -322,7 +322,6 @@ impl Face {
                 start: self.start - fence_direction,
             },
         ]
-        .into_iter()
     }
 }
 
@@ -345,7 +344,7 @@ mod test {
     fn test_face_neighbors() {
         let location = Location::new(0, 0);
         let face = Face::new(location, (0, 1));
-        let neighbors: HashSet<_> = face.same_direction_neighbors().collect();
+        let neighbors: HashSet<_> = face.same_direction_neighbors().into_iter().collect();
         assert_eq!(
             neighbors,
             [
@@ -357,7 +356,7 @@ mod test {
         );
 
         let face = Face::new(location, (1, 0));
-        let neighbors: HashSet<_> = face.same_direction_neighbors().collect();
+        let neighbors: HashSet<_> = face.same_direction_neighbors().into_iter().collect();
         assert_eq!(
             neighbors,
             [

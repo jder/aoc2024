@@ -41,6 +41,7 @@ pub fn part1(input: &str) -> usize {
 // of the two sides of this face (as returned by Face::touching_locations) which of them matches the given character?
 fn side_matching_character(map: &Grid<char>, face: &Face, c: char) -> usize {
     face.touching_locations()
+        .into_iter()
         .find_position(|&loc| {
             map.cell(loc)
                 .map(|cell| *cell.contents() == c)
@@ -57,6 +58,7 @@ pub fn part2(input: &str) -> usize {
         flood_fill_from(segments.iter().copied(), move |face| {
             let needed_side = side_matching_character(map, face, region_character);
             face.same_direction_neighbors()
+                .into_iter()
                 .filter(move |maybe_neighbor| {
                     segments.contains(maybe_neighbor)
                         && side_matching_character(map, maybe_neighbor, region_character)
