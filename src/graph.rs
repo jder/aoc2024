@@ -53,12 +53,13 @@ where
     distances.into_iter().collect()
 }
 
-pub fn flood_fill_from<V>(
+pub fn flood_fill_from<V, EI>(
     starts: impl Iterator<Item = V>,
-    edges: impl Fn(&V) -> Vec<V>,
+    edges: impl Fn(&V) -> EI,
 ) -> Vec<Vec<V>>
 where
     V: Eq + Hash + Clone,
+    EI: Iterator<Item = V>,
 {
     let mut regions = vec![];
     let mut visited: HashMap<V, usize> = HashMap::new();
