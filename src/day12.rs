@@ -55,6 +55,8 @@ pub fn part2(input: &str) -> usize {
     compute_cost(input, |map, region| {
         let region_character = *region.first().unwrap().contents();
         let segments: &HashSet<Face> = &region.iter().flat_map(fence_segments).collect();
+
+        // group all the faces together into contiguous sides
         flood_fill_from(segments.iter().copied(), move |face| {
             let needed_side = side_matching_character(map, face, region_character);
             face.same_direction_neighbors()
