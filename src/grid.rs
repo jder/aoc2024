@@ -252,3 +252,120 @@ impl Region {
         self.locations.len()
     }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Face {
+    // true == face runs north-south
+    vertical: bool,
+    // for vertical this is the cell to the right, for horizontal it's the cell below
+    start: Location,
+}
+
+impl Face {
+    /// Face of the given location's cell when moving in the heading direction.
+    pub fn new(location: Location, heading: (Index, Index)) -> Self {
+        assert!(heading.0 == 0 || heading.1 == 0);
+        assert!(heading.0.abs() == 1 || heading.1.abs() == 1);
+
+        if heading.0 == 0 {
+            // moving only in y direction, so horizontal face
+            Face {
+                vertical: false,
+                start: if heading.1 == -1 {
+                    // going up, so face is above us
+                    location
+                } else {
+                    // going down, so face is below us
+                    location + vec2(0, 1)
+                },
+            }
+        } else {
+            // moving only in x direction, so vertical face
+            Face {
+                vertical: true,
+                start: if heading.0 == -1 {
+                    // going left, so face is to the left
+                    location
+                } else {
+                    // going right, so face is to the right
+                    location + vec2(1, 0)
+                },
+            }
+        }
+    }
+
+    pub fn touching_locations(&self) -> impl Iterator<Item = Location> {
+        let start = self.start;
+        let end = if self.vertical {
+            start + vec2(-1, 0)
+        } else {
+            start + vec2(0, -1)
+        };
+
+        [start, end].into_iter()
+    }
+
+    pub fn same_direction_neighbors(&self) -> impl Iterator<Item = Face> {
+        let fence_direction = if self.vertical {
+            vec2(0, 1)
+        } else {
+            vec2(1, 0)
+        };
+
+        [
+            Face {
+                vertical: self.vertical,
+                start: self.start + fence_direction,
+            },
+            Face {
+                vertical: self.vertical,
+                start: self.start - fence_direction,
+            },
+        ]
+        .into_iter()
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+
+    #[test]
+    fn test_face_normalization() {
+        let location = Location::new(0, 0);
+        let face = Face::new(location, (0, 1));
+        assert_eq!(face, Face::new(location + vec2(0, 1), (0, -1)));
+
+        let face = Face::new(location, (1, 0));
+        assert_eq!(face, Face::new(location + vec2(1, 0), (-1, 0)));
+    }
+
+    #[test]
+    fn test_face_neighbors() {
+        let location = Location::new(0, 0);
+        let face = Face::new(location, (0, 1));
+        let neighbors: HashSet<_> = face.same_direction_neighbors().collect();
+        assert_eq!(
+            neighbors,
+            [
+                Face::new(location + vec2(-1, 0), (0, 1)),
+                Face::new(location + vec2(1, 0), (0, 1)),
+            ]
+            .into_iter()
+            .collect()
+        );
+
+        let face = Face::new(location, (1, 0));
+        let neighbors: HashSet<_> = face.same_direction_neighbors().collect();
+        assert_eq!(
+            neighbors,
+            [
+                Face::new(location + vec2(0, 1), (1, 0)),
+                Face::new(location + vec2(0, -1), (1, 0)),
+            ]
+            .into_iter()
+            .collect()
+        );
+    }
+}
