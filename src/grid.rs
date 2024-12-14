@@ -5,7 +5,7 @@ pub type Index = isize;
 
 #[derive(Debug, Clone)]
 pub struct Grid<T> {
-    contents: Vec<Vec<T>>,
+    contents: Vec<T>,
     width: usize,
     height: usize,
 }
@@ -15,20 +15,15 @@ impl<T> Grid<T> {
     where
         T: Clone,
     {
-        let mut contents = Vec::with_capacity(height);
-        for _ in 0..height {
-            let mut row = Vec::with_capacity(width);
-            for _ in 0..width {
-                row.push(element.clone());
-            }
-            contents.push(row);
-        }
-
         Self {
-            contents,
+            contents: vec![element; width * height],
             width,
             height,
         }
+    }
+
+    fn index(&self, location: Location) -> usize {
+        location.y as usize * self.width + location.x as usize
     }
 
     /// Returns a cell for this location, or None if the location is out of bounds.
@@ -48,7 +43,8 @@ impl<T> Grid<T> {
     }
 
     pub fn set(&mut self, location: Location, value: T) {
-        self.contents[location.y as usize][location.x as usize] = value;
+        let index = self.index(location);
+        self.contents[index] = value;
     }
 
     pub fn width(&self) -> usize {
@@ -71,16 +67,14 @@ impl<T> Grid<T> {
     }
 
     pub fn map<U>(&self, mut f: impl FnMut(Cell<T>) -> U) -> Grid<U> {
-        let mut contents = Vec::with_capacity(self.height);
+        let mut contents = Vec::with_capacity(self.width * self.height);
         for y in 0..self.height {
-            let mut new_row = Vec::with_capacity(self.width);
             for x in 0..self.width {
-                new_row.push(f(Cell {
+                contents.push(f(Cell {
                     grid: self,
                     location: Location::new(x as Index, y as Index),
                 }));
             }
-            contents.push(new_row);
         }
 
         Grid {
@@ -107,7 +101,7 @@ impl Grid<char> {
             } else {
                 width = Some(row.len());
             }
-            contents.push(row);
+            contents.extend_from_slice(&row[..]);
             height += 1;
         }
 
@@ -121,7 +115,7 @@ impl Grid<char> {
 
 impl Display for Grid<char> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for row in &self.contents {
+        for row in self.contents.chunks(self.width) {
             for c in row {
                 write!(f, "{}", c)?;
             }
@@ -161,8 +155,7 @@ impl<'a, T> Cell<'a, T> {
     pub fn contents(&self) -> &T {
         self.grid
             .contents
-            .get(self.location.y as usize)
-            .and_then(|row| row.get(self.location.x as usize))
+            .get(self.grid.index(self.location))
             .expect("Cell should always be in bounds")
     }
 

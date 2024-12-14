@@ -26,13 +26,13 @@ pub fn part1(input: &str, is_sample: bool) -> usize {
 pub fn part2(input: &str, is_sample: bool) -> usize {
     assert!(!is_sample);
 
-    let robots = parse_robots(input);
+    let robots = parse_robots(input).collect_vec();
 
     let (width, height) = (101, 103);
 
-    let result = (0..((width * height) as i64))
-        .map(|i| {
-            let grid = build_grid(width, height, robots.clone(), i);
+    let result = (0..(width * height))
+        .find_position(|i| {
+            let grid = build_grid(width, height, robots.iter(), *i as i64);
 
             let num_well_connected = grid
                 .cells()
@@ -45,14 +45,12 @@ pub fn part2(input: &str, is_sample: bool) -> usize {
                             >= 2
                 })
                 .count();
-            (i, num_well_connected)
+            num_well_connected > robots.len() / 2 // "most of the robots"
         })
-        .sorted_by(|(_, a), (_, b)| a.cmp(b).reverse())
-        .next()
         .unwrap()
-        .0 as usize;
+        .1;
 
-    let final_grid = build_grid(width, height, robots, result as i64);
+    let final_grid = build_grid(width, height, robots.iter(), result as i64);
     debug!("{}", final_grid);
 
     result
@@ -71,10 +69,10 @@ fn parse_robots(input: &str) -> impl Iterator<Item = (i64, i64, i64, i64)> + Clo
     robots
 }
 
-fn build_grid(
+fn build_grid<'a>(
     width: usize,
     height: usize,
-    robots: impl Iterator<Item = (i64, i64, i64, i64)>,
+    robots: impl Iterator<Item = &'a (i64, i64, i64, i64)>,
     i: i64,
 ) -> Grid<char> {
     let mut grid = Grid::new('.', width, height);
