@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use euclid::point2;
 use log::debug;
 use regex::Regex;
