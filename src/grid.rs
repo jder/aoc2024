@@ -11,6 +11,26 @@ pub struct Grid<T> {
 }
 
 impl<T> Grid<T> {
+    pub fn new(element: T, width: usize, height: usize) -> Self
+    where
+        T: Clone,
+    {
+        let mut contents = Vec::with_capacity(height);
+        for _ in 0..height {
+            let mut row = Vec::with_capacity(width);
+            for _ in 0..width {
+                row.push(element.clone());
+            }
+            contents.push(row);
+        }
+
+        Self {
+            contents,
+            width,
+            height,
+        }
+    }
+
     /// Returns a cell for this location, or None if the location is out of bounds.
     pub fn cell(&self, location: Location) -> Option<Cell<T>> {
         if location.x < 0
