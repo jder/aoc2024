@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use std::collections::HashSet;
+use std::{collections::HashSet, fmt::Display};
 
 pub type Index = isize;
 
@@ -116,6 +116,18 @@ impl Grid<char> {
             width: width.unwrap_or_default(),
             height,
         }
+    }
+}
+
+impl Display for Grid<char> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for row in &self.contents {
+            for c in row {
+                write!(f, "{}", c)?;
+            }
+            writeln!(f)?;
+        }
+        Ok(())
     }
 }
 
