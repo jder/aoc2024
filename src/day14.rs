@@ -4,22 +4,17 @@ use regex::Regex;
 
 use crate::prelude::*;
 
-pub fn part1(input: &str) -> usize {
-    let integer = Regex::new("-?\\d+").unwrap();
+pub fn part1(input: &str, is_sample: bool) -> usize {
+    let (width, height) = if is_sample { (11, 7) } else { (101, 103) };
+
     let duration = 100;
-    let robots = input.lines().map(|line| {
-        let (px, py, vx, vy) = integer
-            .find_iter(line)
-            .map(|x| x.as_str().parse::<i64>().unwrap())
-            .collect_tuple()
-            .unwrap();
-        (px + vx * duration, py + vy * duration)
+    let final_positions = parse_robots(input).map(|(px, py, vx, vy)| {
+        (
+            (px + vx * duration).rem_euclid(width),
+            (py + vy * duration).rem_euclid(height),
+        )
     });
 
-    let width = 101;
-    let height = 103;
-
-    let final_positions = robots.map(|(x, y)| (x.rem_euclid(width), y.rem_euclid(height)));
     let quadrants = final_positions
         .filter(|(x, y)| *x != width / 2 && *y != height / 2)
         .into_grouping_map_by(|(x, y)| (*x < width / 2, *y < height / 2))
@@ -28,19 +23,12 @@ pub fn part1(input: &str) -> usize {
     quadrants.values().product()
 }
 
-pub fn part2(input: &str) -> usize {
-    let integer = Regex::new("-?\\d+").unwrap();
-    let robots = input.lines().map(|line| {
-        let (px, py, vx, vy) = integer
-            .find_iter(line)
-            .map(|x| x.as_str().parse::<i64>().unwrap())
-            .collect_tuple()
-            .unwrap();
-        (px, py, vx, vy)
-    });
+pub fn part2(input: &str, is_sample: bool) -> usize {
+    assert!(!is_sample);
 
-    let width = 101;
-    let height = 103;
+    let robots = parse_robots(input);
+
+    let (width, height) = (101, 103);
 
     let result = (0..((width * height) as i64))
         .map(|i| {
@@ -79,6 +67,19 @@ pub fn part2(input: &str) -> usize {
     }
 
     result
+}
+
+fn parse_robots(input: &str) -> impl Iterator<Item = (i64, i64, i64, i64)> + Clone + use<'_> {
+    let integer = Regex::new("-?\\d+").unwrap();
+    let robots = input.lines().map(move |line| {
+        let (px, py, vx, vy) = integer
+            .find_iter(line)
+            .map(|x| x.as_str().parse::<i64>().unwrap())
+            .collect_tuple()
+            .unwrap();
+        (px, py, vx, vy)
+    });
+    robots
 }
 
 fn build_grid(

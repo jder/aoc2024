@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub fn part1(input: &str) -> i32 {
+pub fn part1(input: &str, _is_sample: bool) -> i32 {
     let (mut first, mut second): (Vec<i32>, Vec<i32>) = input
         .lines()
         .map(|line| {
@@ -21,7 +21,7 @@ pub fn part1(input: &str) -> i32 {
         .sum()
 }
 
-pub fn part2(input: &str) -> u64 {
+pub fn part2(input: &str, _is_sample: bool) -> u64 {
     let (first, second): (Vec<u64>, HashBag<u64>) = input
         .lines()
         .map(|line| {

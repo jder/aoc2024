@@ -21,7 +21,7 @@ pub mod grid;
 
 // Inspired by https://git.sr.ht/~gadanidis/aoc2024/tree/main/item/src/main.rs
 
-type DayFn = Box<dyn Fn(&str) -> String + Send + Sync + 'static>;
+type DayFn = Box<dyn Fn(&str, bool) -> String + Send + Sync + 'static>;
 
 struct Runner {
     days: Vec<(String, (DayFn, DayFn))>,
@@ -33,18 +33,18 @@ impl Runner {
 
     fn register_day<T1, T2, F1, F2>(&mut self, name: &str, part1: F1, part2: F2)
     where
-        F1: Fn(&str) -> T1,
+        F1: Fn(&str, bool) -> T1,
         F1: Send + Sync + 'static,
         T1: Display,
-        F2: Fn(&str) -> T2,
+        F2: Fn(&str, bool) -> T2,
         F2: Send + Sync + 'static,
         T2: Display,
     {
         self.days.push((
             name.to_string(),
             (
-                Box::new(move |input| part1(input).to_string()),
-                Box::new(move |input| part2(input).to_string()),
+                Box::new(move |input, sample| part1(input, sample).to_string()),
+                Box::new(move |input, sample| part2(input, sample).to_string()),
             ),
         ));
     }
@@ -72,8 +72,8 @@ impl Runner {
 
         let start = std::time::Instant::now();
         let result = match part {
-            1 => part1(input),
-            2 => part2(input),
+            1 => part1(input, sample),
+            2 => part2(input, sample),
             _ => panic!("Invalid part {}", part),
         };
         let elapsed = start.elapsed();

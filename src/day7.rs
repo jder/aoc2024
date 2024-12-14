@@ -43,7 +43,7 @@ fn parse_line(line: &str) -> (Num, Vec<Num>) {
     (goal, operands)
 }
 
-pub fn part1(input: &str) -> Num {
+pub fn part1(input: &str, _is_sample: bool) -> Num {
     input
         .lines()
         .filter_map(|line| {
@@ -53,7 +53,7 @@ pub fn part1(input: &str) -> Num {
         .sum()
 }
 
-pub fn part2(input: &str) -> Num {
+pub fn part2(input: &str, _is_sample: bool) -> Num {
     input
         .lines()
         .filter_map(|line| {

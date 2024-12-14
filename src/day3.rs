@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub fn part1(input: &str) -> usize {
+pub fn part1(input: &str, _is_sample: bool) -> usize {
     regex::Regex::new(r"mul\((\d+),(\d+)\)")
         .unwrap()
         .captures_iter(input)
@@ -13,7 +13,7 @@ pub fn part1(input: &str) -> usize {
         .sum()
 }
 
-pub fn part2(input: &str) -> usize {
+pub fn part2(input: &str, _is_sample: bool) -> usize {
     let mut enabled = true;
     regex::Regex::new(r"mul\((\d+),(\d+)\)|do\(\)|don't\(\)")
         .unwrap()

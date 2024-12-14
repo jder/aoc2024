@@ -6,7 +6,7 @@ fn matches_any<'a>(candidates: &[&str], path: impl Iterator<Item = Cell<'a, char
     candidates.iter().any(|c| path_str.starts_with(c))
 }
 
-pub fn part1(input: &str) -> usize {
+pub fn part1(input: &str, _is_sample: bool) -> usize {
     let grid = Grid::new_with_lines(input.lines());
     grid.cells()
         .map(|cell| {
@@ -29,7 +29,7 @@ fn x_diagonals(
     Some((diag_one, diag_two))
 }
 
-pub fn part2(input: &str) -> usize {
+pub fn part2(input: &str, _is_sample: bool) -> usize {
     let grid = Grid::new_with_lines(input.lines());
     grid.cells()
         .filter(|cell| {

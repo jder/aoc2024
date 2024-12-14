@@ -99,7 +99,7 @@ fn walk(map: &Grid<char>, start: Location) -> Option<Visited> {
     }
 }
 
-pub fn part1(input: &str) -> usize {
+pub fn part1(input: &str, _is_sample: bool) -> usize {
     let map = Grid::new_with_lines(input.lines());
     let start = map
         .cells()
@@ -109,7 +109,7 @@ pub fn part1(input: &str) -> usize {
     walk(&map, start).unwrap().iter().unique_by(|v| v.0).count()
 }
 
-pub fn part2(input: &str) -> usize {
+pub fn part2(input: &str, _is_sample: bool) -> usize {
     let map = Grid::new_with_lines(input.lines());
     let start = map
         .cells()

@@ -2,7 +2,7 @@ use std::iter;
 
 use crate::prelude::*;
 
-pub fn part1(input: &str) -> usize {
+pub fn part1(input: &str, _is_sample: bool) -> usize {
     let mut disk = Vec::new();
 
     for (index, mut chunk) in input
@@ -55,7 +55,7 @@ struct File {
     len: usize,
 }
 
-pub fn part2(input: &str) -> usize {
+pub fn part2(input: &str, _is_sample: bool) -> usize {
     let mut files = Vec::new();
     let mut frees = Vec::new();
 

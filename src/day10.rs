@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::prelude::*;
 
-pub fn part1(input: &str) -> usize {
+pub fn part1(input: &str, _is_sample: bool) -> usize {
     let map = parse_map(input);
     map.cells()
         .filter(is_trail_head)
@@ -10,7 +10,7 @@ pub fn part1(input: &str) -> usize {
         .sum()
 }
 
-pub fn part2(input: &str) -> usize {
+pub fn part2(input: &str, _is_sample: bool) -> usize {
     let map = parse_map(input);
 
     let mut paths_from: HashMap<Location, usize> = HashMap::new();

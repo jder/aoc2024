@@ -42,12 +42,12 @@ fn solve_game(Game { goal, a, b }: Game) -> Option<Num> {
     }
 }
 
-pub fn part1(input: &str) -> Num {
+pub fn part1(input: &str, _is_sample: bool) -> Num {
     let games = parse(input);
     games.into_iter().filter_map(solve_game).sum()
 }
 
-pub fn part2(input: &str) -> Num {
+pub fn part2(input: &str, _is_sample: bool) -> Num {
     let games = parse(input);
     games
         .into_iter()

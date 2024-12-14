@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 type Num = u64;
 
-pub fn part1(input: &str) -> usize {
+pub fn part1(input: &str, _is_sample: bool) -> usize {
     count_steps(input, 25)
 }
 
@@ -51,6 +51,6 @@ fn num_stones(start: Num, steps: usize, memo: &mut HashMap<(Num, usize), usize>)
     result
 }
 
-pub fn part2(input: &str) -> usize {
+pub fn part2(input: &str, _is_sample: bool) -> usize {
     count_steps(input, 75)
 }

@@ -42,7 +42,7 @@ fn compare(a: &usize, b: &usize, followers: &HashMap<usize, Vec<usize>>) -> Orde
     }
 }
 
-pub fn part1(input: &str) -> usize {
+pub fn part1(input: &str, _is_sample: bool) -> usize {
     let (followers, updates) = parse_input(input);
 
     updates
@@ -52,7 +52,7 @@ pub fn part1(input: &str) -> usize {
         .sum()
 }
 
-pub fn part2(input: &str) -> usize {
+pub fn part2(input: &str, _is_sample: bool) -> usize {
     let (followers, updates) = parse_input(input);
 
     updates

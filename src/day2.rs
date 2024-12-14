@@ -19,7 +19,7 @@ fn parse_reports(input: &str) -> Vec<Vec<i32>> {
         .collect()
 }
 
-pub fn part1(input: &str) -> usize {
+pub fn part1(input: &str, _is_sample: bool) -> usize {
     let reports = parse_reports(input);
     reports.iter().filter(|levels| report_safe(&levels)).count()
 }
@@ -34,7 +34,7 @@ fn mutated_report_safe(levels: &[i32]) -> bool {
         .any(|levels| report_safe(&levels))
 }
 
-pub fn part2(input: &str) -> usize {
+pub fn part2(input: &str, _is_sample: bool) -> usize {
     let reports = parse_reports(input);
     reports
         .iter()

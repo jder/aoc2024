@@ -4,7 +4,7 @@ use itertools::Either;
 
 use crate::prelude::*;
 
-pub fn part1(input: &str) -> usize {
+pub fn part1(input: &str, _is_sample: bool) -> usize {
     let map = Grid::new_with_lines(input.lines());
     let stations = map.cells().filter(|c| *c.contents() != '.');
 
@@ -24,7 +24,7 @@ pub fn part1(input: &str) -> usize {
         .count()
 }
 
-pub fn part2(input: &str) -> usize {
+pub fn part2(input: &str, _is_sample: bool) -> usize {
     let map = &Grid::new_with_lines(input.lines());
     let stations = map.cells().filter(|c| *c.contents() != '.');
 

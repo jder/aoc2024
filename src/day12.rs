@@ -32,7 +32,7 @@ fn fence_segments<'a>(cell: &'a Cell<char>) -> impl Iterator<Item = Face> + 'a {
     })
 }
 
-pub fn part1(input: &str) -> usize {
+pub fn part1(input: &str, _is_sample: bool) -> usize {
     compute_cost(input, |_map, region| {
         region.iter().map(|cell| fence_segments(cell).count()).sum()
     })
@@ -51,7 +51,7 @@ fn side_matching_character(map: &Grid<char>, face: &Face, c: char) -> usize {
         .0
 }
 
-pub fn part2(input: &str) -> usize {
+pub fn part2(input: &str, _is_sample: bool) -> usize {
     compute_cost(input, |map, region| {
         let region_character = *region.first().unwrap().contents();
         let segments: &HashSet<Face> = &region.iter().flat_map(fence_segments).collect();
