@@ -54,15 +54,9 @@ pub fn part2(input: &str, is_sample: bool) -> usize {
 
     let final_grid = build_grid(width, height, robots, result as i64);
     for y in 0..(height as Index) {
-        let line = (0..(width as Index))
-            .map(|x| {
-                final_grid
-                    .cell(point2(x, y))
-                    .unwrap()
-                    .contents()
-                    .to_string()
-            })
-            .join("");
+        let line: String = (0..(width as Index))
+            .map(|x| *final_grid.cell(point2(x, y)).unwrap().contents())
+            .collect();
         debug!("{}", line);
     }
 
