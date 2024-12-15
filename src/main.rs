@@ -7,7 +7,7 @@ pub mod prelude {
     pub use super::graph;
     pub use super::grid::*;
     pub use bitvec;
-    pub use euclid::{default::*, vec2};
+    pub use euclid::{default::*, point2, vec2};
     pub use hashbag::HashBag;
     pub use itertools::Itertools;
     pub use num::{Float, Integer};
