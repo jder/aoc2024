@@ -7,7 +7,7 @@ pub mod prelude {
     pub use super::graph;
     pub use super::grid::*;
     pub use bitvec;
-    pub use euclid::{vec2, Vector2D};
+    pub use euclid::{default::*, vec2};
     pub use hashbag::HashBag;
     pub use itertools::Itertools;
     pub use num::{Float, Integer};
@@ -122,6 +122,7 @@ mod day11;
 mod day12;
 mod day13;
 mod day14;
+mod day15;
 
 pub fn main() {
     env_logger::init();
@@ -141,6 +142,7 @@ pub fn main() {
     runner.register_day("day12", day12::part1, day12::part2);
     runner.register_day("day13", day13::part1, day13::part2);
     runner.register_day("day14", day14::part1, day14::part2);
+    runner.register_day("day15", day15::part1, day15::part2);
 
     let args = Args::parse();
 
