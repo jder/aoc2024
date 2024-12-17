@@ -25,7 +25,7 @@ pub fn compute_cost(
 }
 
 fn fence_segments<'a>(cell: &'a Cell<char>) -> impl Iterator<Item = Face> + 'a {
-    cardinal_headings().filter_map(|heading| match cell.offset(heading.0, heading.1) {
+    cardinal_headings().filter_map(|heading| match cell.offset(heading.x, heading.y) {
         Some(c) if c.contents() != cell.contents() => Some(Face::new(cell.location(), heading)),
         None => Some(Face::new(cell.location(), heading)),
         _ => None,

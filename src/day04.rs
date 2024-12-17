@@ -11,7 +11,7 @@ pub fn part1(input: &str, _is_sample: bool) -> usize {
     grid.cells()
         .map(|cell| {
             all_headings()
-                .filter(|heading| matches_any(&["XMAS"], cell.walk_inclusive(heading.0, heading.1)))
+                .filter(|heading| matches_any(&["XMAS"], cell.walk_inclusive(heading.x, heading.y)))
                 .count()
         })
         .sum()

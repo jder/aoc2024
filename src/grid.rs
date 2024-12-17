@@ -126,23 +126,29 @@ impl Display for Grid<char> {
 }
 
 pub type Location = euclid::default::Point2D<Index>;
+pub type Heading = euclid::default::Vector2D<Index>;
 
-pub fn all_headings() -> impl Iterator<Item = (Index, Index)> {
+pub fn all_headings() -> impl Iterator<Item = Heading> {
     (-1..=1)
-        .flat_map(|dy| (-1..=1).map(move |dx| (dx, dy)))
-        .filter(|(dx, dy)| *dx != 0 || *dy != 0)
+        .flat_map(|dy| (-1..=1).map(move |dx| vec2(dx, dy)))
+        .filter(|heading| heading.x != 0 || heading.y != 0)
 }
 
 pub fn neighbors(l: Location) -> impl Iterator<Item = Location> {
-    all_headings().map(move |(dx, dy)| l + vec2(dx, dy))
+    all_headings().map(move |heading| l + heading)
 }
 
-pub fn cardinal_headings() -> impl Iterator<Item = (Index, Index)> {
-    [(-1, 0), (1, 0), (0, -1), (0, 1)].iter().copied()
+pub const EAST: Heading = Heading::new(1, 0);
+pub const WEST: Heading = Heading::new(-1, 0);
+pub const NORTH: Heading = Heading::new(0, -1);
+pub const SOUTH: Heading = Heading::new(0, 1);
+
+pub fn cardinal_headings() -> impl Iterator<Item = Heading> {
+    [NORTH, EAST, SOUTH, WEST].iter().copied()
 }
 
 pub fn cardinal_neighbors(l: Location) -> impl Iterator<Item = Location> {
-    cardinal_headings().map(move |(dx, dy)| l + vec2(dx, dy))
+    cardinal_headings().map(move |heading| l + heading)
 }
 
 #[derive(Debug)]
@@ -163,6 +169,7 @@ impl<'a, T> Cell<'a, T> {
         self.location
     }
 
+    // TODO: these should probably take a Heading
     pub fn offset(&self, dx: Index, dy: Index) -> Option<Cell<'a, T>> {
         self.grid.cell(self.location + vec2(dx, dy))
     }
@@ -288,15 +295,15 @@ pub struct Face {
 
 impl Face {
     /// Face of the given location's cell when moving in the heading direction.
-    pub fn new(location: Location, heading: (Index, Index)) -> Self {
-        assert!(heading.0 == 0 || heading.1 == 0);
-        assert!(heading.0.abs() == 1 || heading.1.abs() == 1);
+    pub fn new(location: Location, heading: Heading) -> Self {
+        assert!(heading.x == 0 || heading.y == 0);
+        assert!(heading.x.abs() == 1 || heading.y.abs() == 1);
 
-        if heading.0 == 0 {
+        if heading.x == 0 {
             // moving only in y direction, so horizontal face
             Face {
                 vertical: false,
-                start: if heading.1 == -1 {
+                start: if heading.y == -1 {
                     // going up, so face is above us
                     location
                 } else {
@@ -308,7 +315,7 @@ impl Face {
             // moving only in x direction, so vertical face
             Face {
                 vertical: true,
-                start: if heading.0 == -1 {
+                start: if heading.x == -1 {
                     // going left, so face is to the left
                     location
                 } else {
@@ -358,35 +365,35 @@ mod test {
     #[test]
     fn test_face_normalization() {
         let location = Location::new(0, 0);
-        let face = Face::new(location, (0, 1));
-        assert_eq!(face, Face::new(location + vec2(0, 1), (0, -1)));
+        let face = Face::new(location, vec2(0, 1));
+        assert_eq!(face, Face::new(location + vec2(0, 1), vec2(0, -1)));
 
-        let face = Face::new(location, (1, 0));
-        assert_eq!(face, Face::new(location + vec2(1, 0), (-1, 0)));
+        let face = Face::new(location, vec2(1, 0));
+        assert_eq!(face, Face::new(location + vec2(1, 0), vec2(-1, 0)));
     }
 
     #[test]
     fn test_face_neighbors() {
         let location = Location::new(0, 0);
-        let face = Face::new(location, (0, 1));
+        let face = Face::new(location, vec2(0, 1));
         let neighbors: HashSet<_> = face.same_direction_neighbors().into_iter().collect();
         assert_eq!(
             neighbors,
             [
-                Face::new(location + vec2(-1, 0), (0, 1)),
-                Face::new(location + vec2(1, 0), (0, 1)),
+                Face::new(location + vec2(-1, 0), vec2(0, 1)),
+                Face::new(location + vec2(1, 0), vec2(0, 1)),
             ]
             .into_iter()
             .collect()
         );
 
-        let face = Face::new(location, (1, 0));
+        let face = Face::new(location, vec2(1, 0));
         let neighbors: HashSet<_> = face.same_direction_neighbors().into_iter().collect();
         assert_eq!(
             neighbors,
             [
-                Face::new(location + vec2(0, 1), (1, 0)),
-                Face::new(location + vec2(0, -1), (1, 0)),
+                Face::new(location + vec2(0, 1), vec2(1, 0)),
+                Face::new(location + vec2(0, -1), vec2(1, 0)),
             ]
             .into_iter()
             .collect()

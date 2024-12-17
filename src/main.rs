@@ -1,4 +1,5 @@
 #![feature(hash_set_entry)]
+#![feature(let_chains)]
 use std::{fmt::Display, path::Path};
 
 use clap::Parser;
@@ -123,6 +124,7 @@ mod day12;
 mod day13;
 mod day14;
 mod day15;
+mod day16;
 
 pub fn main() {
     env_logger::init();
@@ -143,6 +145,7 @@ pub fn main() {
     runner.register_day("day13", day13::part1, day13::part2);
     runner.register_day("day14", day14::part1, day14::part2);
     runner.register_day("day15", day15::part1, day15::part2);
+    runner.register_day("day16", day16::part1, day16::part2);
 
     let args = Args::parse();
 
