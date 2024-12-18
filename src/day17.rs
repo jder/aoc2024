@@ -198,7 +198,7 @@ pub fn part2(input: &str, _is_sample: bool) -> usize {
     let (registers, program) = parse_vm(input);
 
     let mut partial = 0usize;
-    let solved = solve(program.len() - 1, &mut partial, &program);
+    let solved = solve(program.len() - 1, &mut partial, &program, 1..8); // we exclude 0 because the last bit cannot be 0 or the program would halt
     assert!(solved);
 
     let mut output = Vec::new();
@@ -221,22 +221,23 @@ pub fn part2(input: &str, _is_sample: bool) -> usize {
     partial
 }
 
-fn solve(i: usize, partial: &mut usize, program: &[usize]) -> bool {
+fn solve(
+    i: usize,
+    partial: &mut usize,
+    program: &[usize],
+    possible_range: impl Iterator<Item = usize>,
+) -> bool {
     let target = program[i];
-    for possible in 0..8 {
+    for possible in possible_range {
         // This was reverse-engineered from my input, yours might be different
-        let rhs = if possible == 3 {
-            possible
-        } else {
-            get_a(i * 3 + (possible ^ 3), &partial, &program[..])
-        };
+        set_a(i * 3, partial, possible);
+        let rhs = get_a(i * 3 + (possible ^ 3), &partial, &program[..]);
         let output = possible ^ rhs;
         debug!("trying {i} {possible} {output} {rhs}");
         if output == target {
             debug!("trying {i} {possible}");
-            set_a(i * 3, partial, possible);
             if i > 0 {
-                if solve(i - 1, partial, program) {
+                if solve(i - 1, partial, program, 0..8) {
                     return true;
                 }
             } else {
