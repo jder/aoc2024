@@ -224,6 +224,7 @@ pub fn part2(input: &str, _is_sample: bool) -> usize {
 fn solve(i: usize, partial: &mut usize, program: &[usize]) -> bool {
     let target = program[i];
     for possible in 0..8 {
+        // This was reverse-engineered from my input, yours might be different
         let rhs = if possible == 3 {
             possible
         } else {
