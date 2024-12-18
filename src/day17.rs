@@ -152,7 +152,7 @@ fn parse_vm(input: &str) -> ([isize; 3], Vec<usize>) {
     (registers.try_into().unwrap(), program)
 }
 
-pub fn part2_brute_force(input: &str, _is_sample: bool) -> isize {
+pub fn _part2_brute_force(input: &str, _is_sample: bool) -> isize {
     let (registers, program) = parse_vm(input);
 
     let chunk_size = 1_000_000_000;
@@ -181,40 +181,67 @@ pub fn part2_brute_force(input: &str, _is_sample: bool) -> isize {
     }
 }
 
-fn get_a(index: usize, partial: &HashMap<usize, usize>, program: &[usize]) -> usize {
-    if index >= program.len() {
+fn get_a(bit_index: usize, partial: &usize, program: &[usize]) -> usize {
+    if bit_index >= program.len() * 3 {
         0
     } else {
-        partial
-            .get(&index)
-            .expect(format!("Can't fetch {}", index).as_str())
-            .to_owned()
+        (*partial >> bit_index) % 8
     }
 }
 
-pub fn part2(input: &str, _is_sample: bool) -> String {
+fn set_a(bit_index: usize, partial: &mut usize, value: usize) {
+    let mask = 0b111 << bit_index;
+    *partial = (*partial & !mask) | (value << bit_index);
+}
+
+pub fn part2(input: &str, _is_sample: bool) -> usize {
     let (registers, program) = parse_vm(input);
 
-    let mut partial = HashMap::new();
-    for i in (0..program.len()).rev() {
-        let target = program[i];
-        for possible in 0..8 {
-            let rhs = if possible == 3 {
-                possible
+    let mut partial = 0usize;
+    let solved = solve(program.len() - 1, &mut partial, &program);
+    assert!(solved);
+
+    let mut output = Vec::new();
+    let mut vm = VM::new(
+        [partial as isize, registers[1], registers[2]],
+        &program[..],
+        |num| {
+            output.push(num);
+            true
+        },
+    );
+
+    vm.run();
+
+    debug!(
+        "running with {partial} produced {}",
+        output.iter().join(",")
+    );
+
+    partial
+}
+
+fn solve(i: usize, partial: &mut usize, program: &[usize]) -> bool {
+    let target = program[i];
+    for possible in 0..8 {
+        let rhs = if possible == 3 {
+            possible
+        } else {
+            get_a(i * 3 + (possible ^ 3), &partial, &program[..])
+        };
+        let output = possible ^ rhs;
+        debug!("trying {i} {possible} {output} {rhs}");
+        if output == target {
+            debug!("trying {i} {possible}");
+            set_a(i * 3, partial, possible);
+            if i > 0 {
+                if solve(i - 1, partial, program) {
+                    return true;
+                }
             } else {
-                get_a(i + (possible ^ 3), &partial, &program[..])
-            };
-            let output = possible ^ rhs;
-            println!("{}: {} ^ {} = {}", i, possible, rhs, output);
-            if output == target {
-                partial.insert(i, possible);
-                break;
+                return true;
             }
         }
-        assert!(partial.contains_key(&i), "No solution found for {}", i);
     }
-
-    (0..program.len())
-        .map(|i| get_a(i, &partial, &program).to_string())
-        .join("")
+    return false;
 }
