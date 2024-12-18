@@ -152,7 +152,7 @@ fn parse_vm(input: &str) -> ([isize; 3], Vec<usize>) {
     (registers.try_into().unwrap(), program)
 }
 
-pub fn part2(input: &str, _is_sample: bool) -> isize {
+pub fn part2_brute_force(input: &str, _is_sample: bool) -> isize {
     let (registers, program) = parse_vm(input);
 
     let chunk_size = 1_000_000_000;
@@ -179,4 +179,42 @@ pub fn part2(input: &str, _is_sample: bool) -> isize {
         }
         start += chunk_size;
     }
+}
+
+fn get_a(index: usize, partial: &HashMap<usize, usize>, program: &[usize]) -> usize {
+    if index >= program.len() {
+        0
+    } else {
+        partial
+            .get(&index)
+            .expect(format!("Can't fetch {}", index).as_str())
+            .to_owned()
+    }
+}
+
+pub fn part2(input: &str, _is_sample: bool) -> String {
+    let (registers, program) = parse_vm(input);
+
+    let mut partial = HashMap::new();
+    for i in (0..program.len()).rev() {
+        let target = program[i];
+        for possible in 0..8 {
+            let rhs = if possible == 3 {
+                possible
+            } else {
+                get_a(i + (possible ^ 3), &partial, &program[..])
+            };
+            let output = possible ^ rhs;
+            println!("{}: {} ^ {} = {}", i, possible, rhs, output);
+            if output == target {
+                partial.insert(i, possible);
+                break;
+            }
+        }
+        assert!(partial.contains_key(&i), "No solution found for {}", i);
+    }
+
+    (0..program.len())
+        .map(|i| get_a(i, &partial, &program).to_string())
+        .join("")
 }
