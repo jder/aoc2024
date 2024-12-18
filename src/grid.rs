@@ -23,6 +23,12 @@ impl<T> Grid<T> {
     }
 
     fn index(&self, location: Location) -> usize {
+        assert!(
+            location.x >= 0
+                && location.y >= 0
+                && location.x < self.width as Index
+                && location.y < self.height as Index
+        );
         location.y as usize * self.width + location.x as usize
     }
 
