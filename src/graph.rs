@@ -2,7 +2,10 @@ use std::{
     cmp::Reverse,
     collections::{BinaryHeap, HashMap, HashSet},
     hash::Hash,
+    iter,
 };
+
+use itertools::Itertools;
 
 pub fn find<V, EdgeIterator>(
     start: V,
@@ -51,6 +54,37 @@ where
         }
     }
     distances.into_iter().collect()
+}
+
+pub fn all_paths<V>(start: V, end: V, edges: impl Fn(&V) -> Vec<V>) -> impl Iterator<Item = Vec<V>>
+where
+    V: Eq + Ord + Hash + Clone,
+{
+    let first_edges = edges(&start);
+    let mut path_and_local_queues = vec![(start, first_edges)];
+    return iter::from_fn(move || {
+        while let Some((node, ref mut alternatives)) = path_and_local_queues.last_mut() {
+            if *node == end {
+                let node = node.clone();
+                return Some(
+                    path_and_local_queues
+                        .iter()
+                        .map(|(n, _)| n.clone())
+                        .chain(iter::once(node))
+                        .collect_vec(),
+                );
+            }
+
+            if let Some(next_node) = alternatives.pop() {
+                let next_edges = edges(&next_node);
+                path_and_local_queues.push((next_node, next_edges));
+            } else {
+                path_and_local_queues.pop();
+            }
+        }
+
+        None
+    });
 }
 
 pub fn flood_fill_from<V, EI>(
