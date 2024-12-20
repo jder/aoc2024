@@ -128,6 +128,7 @@ mod day16;
 mod day17;
 mod day18;
 mod day19;
+mod day20;
 
 pub fn main() {
     env_logger::init();
@@ -152,6 +153,7 @@ pub fn main() {
     runner.register_day("day17", day17::part1, day17::part2);
     runner.register_day("day18", day18::part1, day18::part2);
     runner.register_day("day19", day19::part1, day19::part2);
+    runner.register_day("day20", day20::part1, day20::part2);
 
     let args = Args::parse();
 
