@@ -55,9 +55,11 @@ pub fn part1(input: &str, is_sample: bool) -> u64 {
 
 pub fn part2(input: &str, is_sample: bool) -> String {
     let puzzle = Puzzle::new(is_sample, input);
-    let num_bytes = if is_sample { 12 } else { 1024 };
 
-    let failing_index = (num_bytes..).find(|&n| puzzle.solve(n).is_none()).unwrap() - 1;
-    let failing_byte = puzzle.coords[failing_index];
+    let failing_count = (0..=puzzle.coords.len())
+        .into_iter()
+        .collect_vec()
+        .partition_point(|&n| puzzle.solve(n).is_some());
+    let failing_byte = puzzle.coords[failing_count - 1];
     format!("{},{}", failing_byte.x, failing_byte.y)
 }
