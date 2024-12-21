@@ -15,23 +15,14 @@ pub fn part1(input: &str, _is_sample: bool) -> usize {
     let start = map.cells().find(|c| *c.contents() == 'S').unwrap();
     let end = map.cells().find(|c| *c.contents() == 'E').unwrap();
 
-    let all_min_distances = &all_pairs_min_distances(
-        map.cells().filter(|c| *c.contents() != '#').collect(),
-        edges,
-    );
+    let distances_from_start = &min_distances(start, edges);
+    let distances_to_end = &min_distances(end, edges);
 
-    let cheat_starts = all_min_distances.iter().filter_map(|(from, to, distance)| {
-        if *from == start {
-            Some((to, distance))
-        } else {
-            None
-        }
-    });
-    let no_cheating_cost = all_min_distances
-        .get(&start, &end)
+    let no_cheating_cost = *distances_from_start
+        .get(&end)
         .expect("no path from start to end");
 
-    let possible_cheats = cheat_starts
+    let possible_cheats = distances_from_start
         .into_iter()
         .flat_map(|(cheat_start, cost_to_cheat_start)| {
             cheat_start
@@ -40,7 +31,7 @@ pub fn part1(input: &str, _is_sample: bool) -> usize {
                 .flat_map(|c| c.cardinal_neighbors().filter(|c| *c.contents() != '#'))
                 .map(move |cheat_end| {
                     let cost_to_cheat_end = cost_to_cheat_start + 2;
-                    cost_to_cheat_end + all_min_distances.get(&cheat_end, &end).unwrap()
+                    cost_to_cheat_end + distances_to_end.get(&cheat_end).unwrap()
                 })
         })
         .sorted()
@@ -50,7 +41,7 @@ pub fn part1(input: &str, _is_sample: bool) -> usize {
         "{:?}",
         possible_cheats
             .iter()
-            .map(|cost| no_cheating_cost as isize - *cost as isize)
+            .filter_map(|cost| cost.checked_sub(no_cheating_cost))
             .counts()
             .iter()
             .sorted()
