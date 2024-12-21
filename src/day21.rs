@@ -6,89 +6,75 @@ use crate::prelude::*;
 
 struct Keypad {
     map: Grid<char>,
-    order_matters: bool,
-    enter_location: Location,
 }
 
 impl Keypad {
-    fn new(keypad: &str, order_matters: bool) -> Self {
+    fn new(keypad: &str) -> Self {
         let map = Grid::new_with_lines(keypad.lines());
-        let enter_location = map
+        Self { map }
+    }
+
+    fn paths(&self, from: char, to: char) -> impl Iterator<Item = Vec<char>> {
+        let from_cell = self.map.cells().find(|c| *c.contents() == from).unwrap();
+        let to = self
+            .map
             .cells()
-            .find(|c| *c.contents() == 'A')
+            .find(|c| *c.contents() == to)
             .unwrap()
             .location();
-        Self {
-            map,
-            order_matters,
-            enter_location,
-        }
-    }
 
-    fn path(&mut self, location: Location, next_location: Location) -> impl Iterator<Item = char> {
-        // Always move in Y first since that's guaranteed to be valid
-        let mut moves = Vec::new();
-        let mut now = self.map.cell(location).unwrap();
-        let goal = self.map.cell(next_location).unwrap();
+        let mut now = from_cell.location();
 
-        while now != goal {
-            if now.location().y < goal.location().y && *now.offset(0, 1).unwrap().contents() != '#'
-            {
-                moves.push('v');
-                now = now.offset(0, 1).unwrap();
+        let mut headings = Vec::new();
+        while now != to {
+            if now.x != to.x {
+                let delta = (to.x - now.x).signum();
+                headings.push(vec2(delta, 0));
+                now.x += delta;
+                continue;
             }
 
-            if now.location().y > goal.location().y && *now.offset(0, -1).unwrap().contents() != '#'
-            {
-                moves.push('^');
-                now = now.offset(0, -1).unwrap();
-            }
-
-            if now.location().x < goal.location().x && *now.offset(1, 0).unwrap().contents() != '#'
-            {
-                moves.push('>');
-                now = now.offset(1, 0).unwrap();
-            }
-
-            if now.location().x > goal.location().x && *now.offset(-1, 0).unwrap().contents() != '#'
-            {
-                moves.push('<');
-                now = now.offset(-1, 0).unwrap();
+            if now.y != to.y {
+                let delta = (to.y - now.y).signum();
+                headings.push(vec2(0, delta));
+                now.y += delta;
+                continue;
             }
         }
 
-        moves.into_iter()
+        [
+            self.to_path(from_cell, headings.iter().copied()),
+            self.to_path(from_cell, headings.iter().copied().rev()),
+        ]
+        .into_iter()
+        .flatten()
     }
-}
 
-// ends in A, but not present in sequence
-fn solve_block(sequence: impl Iterator<Item = char>, keypad: &mut Keypad) -> Vec<char> {
-    sequence
-        .chain(iter::once('A'))
-        .fold(
-            (keypad.enter_location, Vec::new()),
-            |(location, mut moves), c| {
-                let next_location = keypad
-                    .map
-                    .cells()
-                    .find(|cell| *cell.contents() == c)
-                    .unwrap()
-                    .location();
-                moves.extend(keypad.path(location, next_location));
-                moves.extend(iter::once('A'));
-                (next_location, moves)
-            },
-        )
-        .1
-}
+    fn to_path(
+        &self,
+        from: Cell<char>,
+        headings: impl Iterator<Item = Heading>,
+    ) -> Option<Vec<char>> {
+        let mut now = from;
+        let mut path = Vec::new();
+        for heading in headings {
+            now = now.offset(heading.x, heading.y).unwrap();
+            if *now.contents() == '#' {
+                return None;
+            }
+            path.push(if heading == NORTH {
+                '^'
+            } else if heading == SOUTH {
+                'v'
+            } else if heading == EAST {
+                '>'
+            } else {
+                '<'
+            });
+        }
 
-// We assume we start at the enter location and the last move is to press the enter key
-fn moves_to_enter(sequence: &[char], keypad: &mut Keypad) -> Vec<char> {
-    let blocks = sequence.split(|c| *c == 'A');
-    blocks
-        .filter(|block| !block.is_empty())
-        .flat_map(|block| solve_block(block.iter().copied(), keypad))
-        .collect()
+        Some(path)
+    }
 }
 
 static FINAL_KEYPAD: &'static str = "789
@@ -99,34 +85,81 @@ static FINAL_KEYPAD: &'static str = "789
 static ARROW_KEYPAD: &'static str = "#^A
 <v>";
 
-fn solve(target: &str, final_keypad: &mut Keypad, arrow_keypad: &mut Keypad) -> usize {
-    let final_sequence = target.chars().collect_vec();
-    let final_moves = moves_to_enter(&final_sequence, final_keypad);
-    let robot_2_moves = moves_to_enter(&final_moves, arrow_keypad);
-    let robot_1_moves = moves_to_enter(&robot_2_moves, arrow_keypad);
+// Given the previously-pressed button, find min number of moves to *press* target
+fn best_path_to(
+    from: char,
+    to: char,
+    keypads: &[&Keypad],
+    cache: &mut HashMap<(char, char, usize), usize>,
+) -> usize {
+    if keypads.is_empty() {
+        return 1;
+    }
 
-    debug!(
-        "target: {}, final: {}, robot_2: {}, robot_1: {} length {}",
-        target,
-        final_moves.iter().collect::<String>(),
-        robot_2_moves.iter().collect::<String>(),
-        robot_1_moves.iter().collect::<String>(),
-        robot_1_moves.len()
-    );
+    if let Some(&cost) = cache.get(&(from, to, keypads.len())) {
+        return cost;
+    }
 
-    target[..3].parse::<usize>().unwrap() * robot_1_moves.len()
+    let possible_paths = keypads.first().unwrap().paths(from, to);
+    let cost = possible_paths
+        .into_iter()
+        .map(|path| {
+            path.into_iter()
+                .chain(iter::once('A'))
+                .fold(('A', 0), |(last, cost), c| {
+                    let new_cost = cost + best_path_to(last, c, &keypads[1..], cache);
+                    (c, new_cost)
+                })
+                .1
+        })
+        .min()
+        .unwrap();
+
+    cache.insert((from, to, keypads.len()), cost);
+    cost
+}
+
+fn solve(
+    target: &str,
+    final_keypad: &Keypad,
+    arrow_keypad: &Keypad,
+    num_arrow_pads: usize,
+) -> usize {
+    let mut cache = HashMap::new();
+    let keypads = iter::once(final_keypad)
+        .chain(iter::repeat(arrow_keypad).take(num_arrow_pads))
+        .collect::<Vec<_>>();
+    let final_cost: usize = target
+        .chars()
+        .fold(('A', 0), |(from, total), to| {
+            (
+                to,
+                total + best_path_to(from, to, &keypads.as_slice(), &mut cache),
+            )
+        })
+        .1;
+
+    debug!("{}: {}", target, final_cost);
+
+    target[..3].parse::<usize>().unwrap() * final_cost
 }
 
 pub fn part1(input: &str, _is_sample: bool) -> usize {
-    let mut final_keypad = Keypad::new(FINAL_KEYPAD, true);
-    let mut arrow_keypad = Keypad::new(ARROW_KEYPAD, false);
+    let final_keypad = Keypad::new(FINAL_KEYPAD);
+    let arrow_keypad = Keypad::new(ARROW_KEYPAD);
 
     input
         .lines()
-        .map(|line| solve(line, &mut final_keypad, &mut arrow_keypad))
+        .map(|line| solve(line, &final_keypad, &arrow_keypad, 2))
         .sum()
 }
 
 pub fn part2(input: &str, _is_sample: bool) -> usize {
-    todo!()
+    let final_keypad = Keypad::new(FINAL_KEYPAD);
+    let arrow_keypad = Keypad::new(ARROW_KEYPAD);
+
+    input
+        .lines()
+        .map(|line| solve(line, &final_keypad, &arrow_keypad, 25))
+        .sum()
 }
