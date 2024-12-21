@@ -209,6 +209,11 @@ impl<'a, T> Cell<'a, T> {
     pub fn walk_inclusive(&self, dx: Index, dy: Index) -> impl Iterator<Item = Cell<'a, T>> {
         std::iter::once(*self).chain(self.walk(dx, dy))
     }
+
+    pub fn manhattan_distance<'b>(&self, cheat_end: &Cell<'b, char>) -> usize {
+        (self.location.x - cheat_end.location.x).abs() as usize
+            + (self.location.y - cheat_end.location.y).abs() as usize
+    }
 }
 
 impl<'a, T> Clone for Cell<'a, T> {
