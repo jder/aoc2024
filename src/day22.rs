@@ -1,4 +1,4 @@
-use std::{iter, usize};
+use std::{collections::HashSet, iter, usize};
 
 use crate::prelude::*;
 
@@ -25,6 +25,47 @@ pub fn part1(input: &str, _is_sample: bool) -> usize {
         .sum()
 }
 
+struct Deltas<const N: usize>([i8; N], usize);
+
+impl<const N: usize> Deltas<N> {
+    fn new() -> Self {
+        Self([0; N], 0)
+    }
+
+    fn push(&mut self, delta: isize) {
+        for i in 0..N - 1 {
+            self.0[i] = self.0[i + 1];
+        }
+        self.0[N - 1] = delta as i8;
+        self.1 += 1;
+    }
+
+    fn full(&self) -> bool {
+        self.1 >= N
+    }
+
+    fn key(&self) -> [i8; N] {
+        self.0
+    }
+}
+
 pub fn part2(input: &str, _is_sample: bool) -> usize {
-    todo!()
+    let mut bananas: HashMap<[i8; 4], usize> = HashMap::new();
+    input.lines().for_each(|line| {
+        let secret = line.parse::<usize>().unwrap();
+        let mut deltas = Deltas::new();
+        let mut seen = HashSet::new();
+        iter::successors(Some(secret), |&secret| Some(next(secret)))
+            .take(2001)
+            .map(|secret| secret % 10)
+            .reduce(|last, current| {
+                deltas.push(current as isize - last as isize);
+                if deltas.full() && !seen.contains(&deltas.key()) {
+                    *bananas.entry(deltas.key()).or_default() += current;
+                    seen.insert(deltas.key());
+                }
+                current
+            });
+    });
+    bananas.values().copied().max().unwrap()
 }
