@@ -41,6 +41,7 @@ fn largest_component_with<'n>(
     so_far: Vec<&'n str>,
     candidates: &[&'n str],
 ) -> Vec<&'n str> {
+    // This could be faster by merge-sort-like reduction of candidates as we add each but this is ok for our size
     candidates
         .iter()
         .enumerate()
