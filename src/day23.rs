@@ -33,6 +33,9 @@ fn parse(input: &str) -> HashMap<&str, Vec<&str>> {
         nodes.entry(a).or_default().push(b);
         nodes.entry(b).or_default().push(a);
     }
+    for v in nodes.values_mut() {
+        v.sort();
+    }
     nodes
 }
 
@@ -48,7 +51,7 @@ fn largest_component_with<'n>(
         .filter_map(|(i, candidate)| {
             if so_far
                 .iter()
-                .all(|current| nodes[current].contains(candidate))
+                .all(|current| candidate > current && nodes[current].contains(candidate))
             {
                 let next = so_far
                     .iter()
