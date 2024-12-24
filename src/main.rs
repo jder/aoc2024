@@ -14,6 +14,7 @@ pub mod prelude {
     pub use num::{Float, Integer};
     pub use rayon::prelude::*;
     pub use regex;
+    pub use regex::Regex;
     pub use std::collections::HashMap;
 }
 
@@ -132,6 +133,7 @@ mod day20;
 mod day21;
 mod day22;
 mod day23;
+mod day24;
 
 pub fn main() {
     env_logger::init();
@@ -160,6 +162,7 @@ pub fn main() {
     runner.register_day("day21", day21::part1, day21::part2);
     runner.register_day("day22", day22::part1, day22::part2);
     runner.register_day("day23", day23::part1, day23::part2);
+    runner.register_day("day24", day24::part1, day24::part2);
 
     let args = Args::parse();
 
