@@ -1,7 +1,7 @@
 use log::debug;
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
-use std::{collections::HashSet, fmt::Display, rc::Rc, str::FromStr};
+use std::{collections::HashSet, fmt::Display, str::FromStr};
 
 use crate::prelude::*;
 
@@ -141,17 +141,21 @@ fn parse(input: &str) -> (HashMap<&str, bool>, HashMap<&str, Expr<'_>>) {
     (values, gates)
 }
 
-pub fn part2(input: &str, _is_sample: bool) -> usize {
+pub fn part2(input: &str, _is_sample: bool) -> String {
     let (orig_values, mut expressions) = parse(input);
 
     // simplyfing assumption: swapping one gate is all that's needed to fix the next wrong z00 bit, starting with lsb
     // swapping means changing expresions[x] <-> expressions[y]
 
+    let mut swaps = Vec::new();
     let mut rng = ChaCha8Rng::seed_from_u64(1);
 
     loop {
         let first_wrong = find_next_wrong(&orig_values, &expressions, &mut rng);
-        debug!("{}", first_wrong);
+        if first_wrong > 45 {
+            break;
+        }
+        debug!("next wrong: {}", first_wrong);
 
         let name = format!("z{:02}", first_wrong).leak();
         let (found, substitute) = recurse_substitute(
@@ -163,16 +167,20 @@ pub fn part2(input: &str, _is_sample: bool) -> usize {
             1_000,
         );
 
-        println!("{found} -> {substitute}");
+        debug!("{found} -> {substitute}");
 
         let first_wrong_expr = expressions.remove(found).unwrap();
         let substitute_expr = expressions.remove(substitute).unwrap();
 
         expressions.insert(found, substitute_expr);
         expressions.insert(substitute, first_wrong_expr);
+
+        swaps.push(found);
+        swaps.push(substitute);
     }
 
-    todo!()
+    swaps.sort();
+    swaps.join(",")
 }
 
 fn recurse_substitute<'a>(
@@ -183,6 +191,7 @@ fn recurse_substitute<'a>(
     name: &'a str,
     count: usize,
 ) -> (&'a str, &'a str) {
+    debug!("looking for substitute for {}, count {}", name, count);
     let mut candidates: HashSet<&'a str> = expressions
         .keys()
         .chain(orig_values.keys())
@@ -201,7 +210,6 @@ fn recurse_substitute<'a>(
         prep_values(x, y, &mut values);
         for output in variable_msb_first("z", &values, &expressions).iter().rev() {
             eval(output, &mut values, &expressions);
-            debug!("{}: {:?}", output, &expressions[output]);
         }
 
         let z = to_usize("z", &values, &expressions);
@@ -209,26 +217,19 @@ fn recurse_substitute<'a>(
         let expected_z = x + y;
         let incorrect_z = expected_z ^ z;
 
-        if incorrect_z >> target & 1 == 1 {
-            let expected = expected_z >> target & 1 == 1;
+        let expected = expected_z >> target & 1 == 1;
 
-            populate_needed(name, expected, &mut needed, &expressions, &values);
+        populate_needed(name, expected, &mut needed, &expressions, &values);
 
-            candidates.retain(|candidate| values[candidate] == expected);
-            explored.push((x, y, z, expected_z, incorrect_z, values, needed));
-        }
-
-        // println!("{x}, {y}, {z}, {expected_z}, {incorrect_z}");
-        // println!("x: {x:064b} x\ny: {y:064b} y\nz: {z:064b} z\ne: {expected_z:064b} e\nw: {incorrect_z:064b} w");
+        candidates.retain(|candidate| values[candidate] == expected);
+        explored.push((x, y, z, expected_z, incorrect_z, values, needed));
     }
-
-    println!("CAndiadtes: {:?}", candidates);
 
     if candidates.len() == 1 {
         let substitute = candidates.iter().next().copied().unwrap();
         return (name, substitute);
     } else if candidates.len() > 1 {
-        recurse_substitute(rng, orig_values, expressions, target, name, count * 2)
+        return recurse_substitute(rng, orig_values, expressions, target, name, count * 2);
     } else {
         let flat_map = explored
             .iter()
@@ -256,11 +257,14 @@ fn recurse_substitute<'a>(
                     }
                 });
 
-            if let Some(candidates) = needed_candidates {
+            if let Some(candidates) = needed_candidates
+                && !candidates.is_empty()
+            {
                 if candidates.len() == 1 {
                     let substitute = candidates.iter().next().copied().unwrap();
                     return (name, substitute);
                 } else {
+                    debug!("Found multiple candidates {:?} for {}", candidates, name);
                     return recurse_substitute(
                         rng,
                         orig_values,
@@ -272,6 +276,8 @@ fn recurse_substitute<'a>(
                 }
             }
         }
+
+        panic!("No substitute found");
     }
 }
 
@@ -294,7 +300,7 @@ fn populate_needed<'a>(
         name,
         values
             .iter()
-            .filter(|(k, v)| **v == expected)
+            .filter(|(_, v)| **v == expected)
             .map(|(k, _)| *k)
             .collect(),
     );
@@ -391,7 +397,6 @@ fn find_next_wrong(
         prep_values(x, y, &mut values);
         for output in variable_msb_first("z", &values, expressions).iter().rev() {
             eval(output, &mut values, expressions);
-            debug!("{}: {:?}", output, &expressions[output]);
         }
 
         let z = to_usize("z", &values, expressions);
@@ -399,60 +404,13 @@ fn find_next_wrong(
         let expected_z = x + y;
         let incorrect_z = expected_z ^ z;
 
-        // println!("{x}, {y}, {z}, {expected_z}, {incorrect_z}");
-        // println!("x: {x:064b} x\ny: {y:064b} y\nz: {z:064b} z\ne: {expected_z:064b} e\nw: {incorrect_z:064b} w");
-
         all_incorrect |= incorrect_z;
     }
 
-    println!("{:064b}", all_incorrect);
+    debug!("incorrect: {:064b}", all_incorrect);
 
     let first_wrong = all_incorrect.trailing_zeros() as usize;
     first_wrong
-}
-
-fn find_substitute<'a>(
-    rng: &mut ChaCha8Rng,
-    orig_values: &HashMap<&'a str, bool>,
-    expressions: &HashMap<&'a str, Expr<'a>>,
-    target: usize,
-) -> Option<&'a str> {
-    let mut candidates: HashSet<&'a str> = expressions
-        .keys()
-        .chain(orig_values.keys())
-        .copied()
-        .collect();
-
-    for _ in 0..10000 {
-        let x = rng.gen::<usize>() & ((1 << 45) - 1);
-        let y = rng.gen::<usize>() & ((1 << 45) - 1);
-
-        let mut values = orig_values.clone();
-
-        prep_values(x, y, &mut values);
-        for output in variable_msb_first("z", &values, &expressions).iter().rev() {
-            eval(output, &mut values, &expressions);
-            debug!("{}: {:?}", output, &expressions[output]);
-        }
-
-        let z = to_usize("z", &values, &expressions);
-
-        let expected_z = x + y;
-        let incorrect_z = expected_z ^ z;
-
-        if incorrect_z >> target & 1 == 1 {
-            let expected = expected_z >> target & 1 == 1;
-
-            candidates.retain(|candidate| values[candidate] == expected);
-        }
-
-        // println!("{x}, {y}, {z}, {expected_z}, {incorrect_z}");
-        // println!("x: {x:064b} x\ny: {y:064b} y\nz: {z:064b} z\ne: {expected_z:064b} e\nw: {incorrect_z:064b} w");
-    }
-
-    println!("CAndiadtes: {:?}", candidates);
-
-    candidates.iter().next().copied()
 }
 
 fn prep_values<'a>(x: usize, y: usize, values: &mut HashMap<&'a str, bool>) {
@@ -463,9 +421,4 @@ fn prep_values<'a>(x: usize, y: usize, values: &mut HashMap<&'a str, bool>) {
             *v = (y >> k[1..].parse::<usize>().unwrap()) & 1 == 1;
         }
     }
-}
-
-enum Evaluation {
-    Correct,   // never seen wrong
-    Incorrect, // seen wrong when no way one child is wrong
 }
